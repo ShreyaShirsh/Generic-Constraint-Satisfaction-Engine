@@ -67,6 +67,11 @@ class CSP:
             out.update(v for v in c.variables if v != var)
         return out
 
+    def constraints_on(self, var: Var) -> list[Constraint]:
+        """Every constraint touching `var` — used by min-conflicts to count
+        how many constraints a candidate value would violate."""
+        return self._by_var[var]
+
     def constraints_between(self, x: Var, y: Var) -> list[Constraint]:
         """Constraints touching both x and y — used by AC-3's revise (Phase 2)."""
         return [c for c in self._by_var[x] if y in c.variables]

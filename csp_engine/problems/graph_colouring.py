@@ -1,6 +1,9 @@
 """Adapter: map / graph colouring -> CSP. Contains NO solving logic, only a
 description of the problem in the engine's common representation.
 
+Universal: graph_colouring_csp works for ANY graph and ANY set of colours.
+Australia is just one named instance (data) built on top of it.
+
 Encoding:
   variables   = nodes / regions
   domains     = the available colours
@@ -12,6 +15,7 @@ from ..core.constraints import NotEqual
 
 
 def graph_colouring_csp(adjacency: dict[str, list[str]], colours: list[str]) -> CSP:
+    """Build a colouring CSP from any adjacency map and any colour palette."""
     variables = list(adjacency.keys())
     domains = {v: set(colours) for v in variables}
 
@@ -27,7 +31,7 @@ def graph_colouring_csp(adjacency: dict[str, list[str]], colours: list[str]) -> 
     return CSP(variables, domains, constraints)
 
 
-# Classic teaching instance: the states/territories of Australia.
+# ---- a named instance (data only), handy as a demo preset ------------------
 AUSTRALIA = {
     "WA":  ["NT", "SA"],
     "NT":  ["WA", "SA", "Q"],
@@ -39,16 +43,12 @@ AUSTRALIA = {
 }
 
 
-def australia_csp() -> CSP:
-    return graph_colouring_csp(AUSTRALIA, ["red", "green", "blue"])
+def australia_csp(colours: list[str] | None = None) -> CSP:
+    return graph_colouring_csp(AUSTRALIA, colours or ["red", "green", "blue"])
 
 
-if __name__ == "__main__":      # smoke test: python3 -m csp_engine.problems.graph_colouring
+if __name__ == "__main__":      # self-test (fixed inputs, because a test needs a known answer)
     from ..core.backtracking import backtracking_search
-    csp = australia_csp()
-    solution, metrics = backtracking_search(csp)
-    print("Solution:" if solution else "No solution.")
-    for v in csp.variables:
-        print(f"  {v:>4} = {solution[v]}")
-    print("\nMetrics:", metrics.summary())
-    print("Valid solution?", csp.is_solution(solution))
+    assert backtracking_search(australia_csp())[0] is not None            # 3 colours: solvable
+    assert backtracking_search(australia_csp(["red", "green"]))[0] is None  # 2 colours: impossible
+    print("graph_colouring self-test passed  (3 colours ok, 2 colours impossible).")

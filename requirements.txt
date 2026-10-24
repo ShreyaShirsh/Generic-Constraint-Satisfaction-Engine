@@ -1,0 +1,5 @@
+
+# core/, problems/, cli.py and benchmark.py use only the standard library.
+# These two are needed only for the web demo (csp_engine/web).
+flask
+flask-cors

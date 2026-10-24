@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Generic Constraint Satisfaction Engine</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <h1>A Generic <span class="accent">Constraint Satisfaction</span> Engine</h1>
+  <p class="sub">One solver, many problems — search, constraint propagation and heuristics for classical AI problem solving.</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="active">Overview</button>
+  <button data-tab="nqueens">N-Queens</button>
+  <button data-tab="colouring">Map Colouring</button>
+  <button data-tab="sudoku">Sudoku</button>
+  <button data-tab="crypto">Cryptarithmetic</button>
+  <button data-tab="zebra">Zebra Puzzle</button>
+  <button data-tab="exam">Exam Scheduling</button>
+  <button data-tab="custom">Custom CSP</button>
+  <button data-tab="benchmark">Benchmark</button>
+</nav>
+
+<main>
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="tab-panel active" id="tab-overview">
+    <div class="card">
+      <h2>The one constraint this whole engine is built on</h2>
+      <p>
+        Six problems on this page — N-Queens, map colouring, Sudoku, cryptarithmetic,
+        the Zebra logic puzzle, and exam timetabling — look unrelated. They are not.
+        Every one of them is handed to the identical, untouched solver as the same
+        mathematical object:
+      </p>
+      <div class="schema-box">CSP = (Variables X, Domains D, Constraints C)
+
+a Constraint is nothing but:   is_satisfied(assignment) -> bool
+                                "a boolean predicate over a tuple of variables"</div>
+      <p>
+        The solver (backtracking search, forward checking, arc consistency,
+        MRV / degree / LCV ordering, min-conflicts) never asks what a variable
+        <em>means</em>. It only ever calls <code class="inline">constraint.is_satisfied(assignment)</code>.
+        It cannot tell the difference between "two queens share a diagonal" and
+        "two exams share a student" — to the solver they are the same shape.
+      </p>
+      <div class="callout">
+        <strong>So what's the common constraint?</strong> It is not a single rule like
+        "all-different" — it's the <em>predicate abstraction itself</em>. Every concrete
+        constraint in this project reduces to exactly two reusable shapes:
+        <code class="inline">BinaryRelation(x, y, predicate)</code> for pairwise rules
+        (not-equal, equal, right-of, next-to — N-Queens, colouring, Sudoku, the Zebra puzzle)
+        and <code class="inline">Predicate(variables, predicate)</code> for n-ary rules
+        (the column-sum-with-carry equations of cryptarithmetic). "All-different" itself
+        is not a separate primitive — it's sugar that expands into pairwise
+        <code class="inline">BinaryRelation</code> objects. One idea, instantiated with
+        different predicates, never a different solver.
+      </div>
+
+      <h3>Architecture</h3>
+      <div class="arch-diagram">
+        <div class="box">Problem adapter<br><small>(data only: variables, domains, constraints)</small></div>
+        <div class="arrow">&rarr;</div>
+        <div class="box engine">core.CSP<br><small>(X, D, C)</small></div>
+        <div class="arrow">&rarr;</div>
+        <div class="box">Solver<br><small>backtracking + inference + heuristics</small></div>
+      </div>
+      <p style="color:var(--muted); font-size:0.85rem;">
+        <code class="inline">csp_engine/problems/*.py</code> never imports a search function —
+        it only <em>describes</em> a problem. <code class="inline">csp_engine/core/*.py</code>
+        never imports a problem module — it only reasons about X, D, C. Delete every file in
+        <code class="inline">problems/</code> and the engine still compiles; it would just have
+        nothing to solve.
+      </p>
+
+      <h3>Techniques implemented</h3>
+      <table class="pretty">
+        <tr><th>Search</th><td>Systematic backtracking (first solution and all-solutions variants)</td></tr>
+        <tr><th>Propagation</th><td>Forward checking, generic AC-3 / MAC (maintaining arc consistency)</td></tr>
+        <tr><th>Ordering heuristics</th><td>Minimum Remaining Values (MRV), degree heuristic, Least Constraining Value (LCV)</td></tr>
+        <tr><th>Local search</th><td>Min-conflicts — repairs a complete, inconsistent assignment instead of building one incrementally</td></tr>
+        <tr><th>Reduction</th><td>Exam scheduling is solved by reducing it to graph colouring — zero new solver code</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== N-QUEENS ===================== -->
+  <section class="tab-panel" id="tab-nqueens">
+    <div class="card">
+      <h2>N-Queens</h2>
+      <p style="color:var(--muted)">variables = columns &middot; domains = rows &middot; constraints = NotEqual(row) and NotEqual(diagonal) between every pair of columns</p>
+      <div class="row">
+        <div>
+          <label for="nq-n">Board size n</label>
+          <input type="number" id="nq-n" value="8" min="1" max="60">
+        </div>
+        <div>
+          <label for="nq-algo">Algorithm</label>
+          <select id="nq-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+            <option value="min_conflicts">Min-conflicts (local search)</option>
+          </select>
+        </div>
+        <div><button class="solve" id="nq-solve">Solve</button></div>
+      </div>
+      <div id="nq-error"></div>
+      <div id="nq-metrics" class="metrics"></div>
+      <div id="nq-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== MAP COLOURING ===================== -->
+  <section class="tab-panel" id="tab-colouring">
+    <div class="card">
+      <h2>Map / Graph Colouring</h2>
+      <p style="color:var(--muted)">variables = regions &middot; domains = colours &middot; constraints = NotEqual between every pair of adjacent regions</p>
+      <div class="pill-group" id="col-presets">
+        <button data-preset="australia" class="active">Australia (preset)</button>
+        <button data-preset="custom">Custom graph</button>
+      </div>
+      <div class="grid-2" style="margin-top:14px">
+        <div>
+          <label for="col-edges">Edges (one per line, e.g. <code class="inline">WA-NT</code>)</label>
+          <textarea id="col-edges">WA-NT
+WA-SA
+NT-SA
+NT-Q
+SA-Q
+SA-NSW
+SA-V
+Q-NSW
+NSW-V
+T</textarea>
+        </div>
+        <div>
+          <label for="col-colours">Colours (comma separated)</label>
+          <input type="text" id="col-colours" value="red, green, blue">
+          <label for="col-algo">Algorithm</label>
+          <select id="col-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+          <button class="solve" id="col-solve">Solve</button>
+        </div>
+      </div>
+      <div id="col-error"></div>
+      <div id="col-metrics" class="metrics"></div>
+      <div id="col-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SUDOKU ===================== -->
+  <section class="tab-panel" id="tab-sudoku">
+    <div class="card">
+      <h2>Sudoku</h2>
+      <p style="color:var(--muted)">variables = cells &middot; domains = 1-9 &middot; constraints = all_different(row), all_different(column), all_different(box)</p>
+      <div class="row">
+        <div>
+          <label for="su-algo">Algorithm</label>
+          <select id="su-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><button class="solve" id="su-solve">Solve easy preset</button></div>
+        <div><button class="ghost" id="su-reset">Reset to blanks</button></div>
+      </div>
+      <p style="color:var(--muted); font-size:0.8rem">Click a cell and type 1-9 to edit the puzzle before solving. 0 / blank = unknown.</p>
+      <div id="su-error"></div>
+      <div id="su-metrics" class="metrics"></div>
+      <div id="su-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CRYPTARITHMETIC ===================== -->
+  <section class="tab-panel" id="tab-crypto">
+    <div class="card">
+      <h2>Cryptarithmetic</h2>
+      <p style="color:var(--muted)">variables = letters (+hidden carries) &middot; domains = digits 0-9 &middot; constraints = all_different(letters) + one column-sum predicate per digit column</p>
+      <div class="row">
+        <div><label for="cr-a1">Addend 1</label><input type="text" id="cr-a1" value="SEND"></div>
+        <div><label for="cr-a2">Addend 2</label><input type="text" id="cr-a2" value="MORE"></div>
+        <div><label for="cr-r">Result</label><input type="text" id="cr-r" value="MONEY"></div>
+        <div>
+          <label for="cr-algo">Algorithm</label>
+          <select id="cr-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><button class="solve" id="cr-solve">Solve</button></div>
+      </div>
+      <p style="color:var(--muted); font-size:0.8rem">Naive backtracking is intentionally slow here (that's the point of the Benchmark tab) — pick an algorithm with MAC/MRV for a fast answer.</p>
+      <div id="cr-error"></div>
+      <div id="cr-metrics" class="metrics"></div>
+      <div id="cr-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== ZEBRA ===================== -->
+  <section class="tab-panel" id="tab-zebra">
+    <div class="card">
+      <h2>The Zebra / Einstein Puzzle</h2>
+      <p style="color:var(--muted)">variables = (category, value) pairs &middot; domains = house 1-5 &middot; constraints = all_different per category + 10 relational clues (SameHouse / RightOf / NextTo)</p>
+      <div class="row">
+        <div>
+          <label for="zb-algo">Algorithm</label>
+          <select id="zb-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><button class="solve" id="zb-solve">Solve</button></div>
+      </div>
+      <div id="zb-error"></div>
+      <div id="zb-metrics" class="metrics"></div>
+      <div id="zb-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== EXAM SCHEDULING ===================== -->
+  <section class="tab-panel" id="tab-exam">
+    <div class="card">
+      <h2>Exam Scheduling <span style="color:var(--muted); font-weight:400; font-size:0.85rem">— reduced to graph colouring</span></h2>
+      <p style="color:var(--muted)">No new solver code: two exams sharing a student become an edge; time slots become colours; the SAME graph-colouring CSP builder is reused.</p>
+      <div class="grid-2">
+        <div>
+          <label for="ex-enroll">Enrollments (one student per line: <code class="inline">Name: Exam1, Exam2</code>)</label>
+          <textarea id="ex-enroll">Alice: AI, DBMS, OS
+Bob: AI, Networks
+Carol: DBMS, Networks, Compilers
+Dave: OS, Compilers
+Eve: AI, OS</textarea>
+        </div>
+        <div>
+          <label for="ex-slots">Number of time slots</label>
+          <input type="number" id="ex-slots" value="4" min="1" max="20">
+          <label for="ex-algo">Algorithm</label>
+          <select id="ex-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+          <button class="solve" id="ex-solve">Solve</button>
+        </div>
+      </div>
+      <div id="ex-error"></div>
+      <div id="ex-metrics" class="metrics"></div>
+      <div id="ex-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CUSTOM CSP ===================== -->
+  <section class="tab-panel" id="tab-custom">
+    <div class="card">
+      <h2>Custom CSP Playground</h2>
+      <p style="color:var(--muted)">
+        This is the proof, not a toy: type ANY (variables, domains, constraints) description and
+        it is handed to the identical solver above, through
+        <code class="inline">csp_engine/web/custom_csp.py</code>, which builds the CSP from nothing
+        but <code class="inline">BinaryRelation</code>, <code class="inline">Predicate</code> and
+        <code class="inline">all_different</code> — the same primitives every preset problem on this
+        page uses.
+      </p>
+      <label for="cu-spec">CSP spec (JSON)</label>
+      <textarea id="cu-spec" style="min-height:260px">{
+  "variables": ["A", "B", "C", "D"],
+  "domains": {
+    "A": [1, 2, 3, 4],
+    "B": [1, 2, 3, 4],
+    "C": [1, 2, 3, 4],
+    "D": [1, 2, 3, 4]
+  },
+  "constraints": [
+    {"type": "all_different", "scope": ["A", "B", "C", "D"]},
+    {"type": "less_than", "scope": ["A", "B"]},
+    {"type": "sum_equals", "scope": ["C", "D"], "target": 5}
+  ]
+}</textarea>
+      <div class="row">
+        <div>
+          <label for="cu-algo">Algorithm</label>
+          <select id="cu-algo">
+            {% for key, algo in algorithms.items() %}<option value="{{ key }}" {% if key=='full' %}selected{% endif %}>{{ algo[0] }}</option>{% endfor %}
+          </select>
+        </div>
+        <div><button class="solve" id="cu-solve">Solve</button></div>
+      </div>
+      <p style="color:var(--muted); font-size:0.8rem">Constraint types: <code class="inline">not_equal</code>, <code class="inline">equal</code>, <code class="inline">less_than</code>, <code class="inline">greater_than</code> (binary), <code class="inline">all_different</code>, <code class="inline">sum_equals</code> (n-ary, needs a numeric <code class="inline">target</code>).</p>
+      <div id="cu-error"></div>
+      <div id="cu-metrics" class="metrics"></div>
+      <div id="cu-viz" class="viz"></div>
+    </div>
+  </section>
+
+  <!-- ===================== BENCHMARK ===================== -->
+  <section class="tab-panel" id="tab-benchmark">
+    <div class="card">
+      <h2>Instrumentation Study</h2>
+      <p style="color:var(--muted)">
+        The same solver, the same problems, only the plugged-in technique changes — measuring exactly
+        how much each one cuts search effort. Loaded once from a precomputed run (naive backtracking
+        is capped at 200,000 nodes so a hard instance can't hang this page).
+      </p>
+      <div id="bm-loading" class="loading">Loading benchmark data&hellip;</div>
+      <div id="bm-content" style="display:none">
+        <label for="bm-problem">Problem</label>
+        <select id="bm-problem"></select>
+        <canvas id="bm-chart" height="110"></canvas>
+        <div id="bm-table"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="note">BITE308L Project Review — A Generic Constraint Satisfaction Engine</footer>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

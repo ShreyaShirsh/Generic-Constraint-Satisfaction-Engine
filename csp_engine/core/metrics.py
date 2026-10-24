@@ -14,6 +14,7 @@ class SearchMetrics:
     pruned: int = 0         # domain values removed by inference (Phase 2+)
     elapsed: float = 0.0    # wall-clock seconds
     solved: bool = False
+    timed_out: bool = False  # hit max_nodes before finishing (search was cut short)
 
     def start(self) -> None:
         self._t0 = time.perf_counter()
@@ -22,6 +23,7 @@ class SearchMetrics:
         self.elapsed = time.perf_counter() - self._t0
 
     def summary(self) -> str:
+        cutoff = "  TIMED OUT" if self.timed_out else ""
         return (f"solved={self.solved}  nodes={self.nodes}  "
                 f"backtracks={self.backtracks}  pruned={self.pruned}  "
-                f"time={self.elapsed*1000:.2f} ms")
+                f"time={self.elapsed*1000:.2f} ms{cutoff}")

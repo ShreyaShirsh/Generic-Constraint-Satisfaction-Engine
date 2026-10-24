@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "csp-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "csp_engine.web.app"],
+      "port": 5000
+    }
+  ]
+}
