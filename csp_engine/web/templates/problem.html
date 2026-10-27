@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ meta.name }} · CSP Engine</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%235b6cff%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22%3E%E2%89%A0%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='kit.css') }}">
+</head>
+<body>
+
+<header class="ptop">
+  <nav class="crumbs"><a href="/">All problems</a> <span>›</span> <a href="/#cat-{{ category[0] }}">{{ category[1] }}</a></nav>
+  <div class="cat-{{ category[0] }}"><span class="cat-badge play">{{ category[1] }}</span></div>
+  <h1>{{ meta.name }}</h1>
+  <p class="sub">{{ meta.summary }}</p>
+</header>
+
+<main class="pmain">
+  <aside class="csp-panel">
+    <h2>As a CSP</h2>
+    <dl class="formulation">
+      <dt>Variables</dt><dd>{{ meta.formulation.variables }}</dd>
+      <dt>Domains</dt><dd>{{ meta.formulation.domains }}</dd>
+      <dt>Constraints</dt><dd>{{ meta.formulation.constraints }}</dd>
+    </dl>
+    <p class="one-line"><strong>The one constraint:</strong> {{ meta.one_constraint }}</p>
+    <div id="census" class="census"><p class="muted">Solve or generate an instance to see exactly what it compiled into.</p></div>
+  </aside>
+  <section class="app-card">
+    <div id="app"></div>
+  </section>
+</main>
+
+<footer class="note">Solved by the same <code>core/</code> engine as every other problem on this site · <a href="/">all problems</a></footer>
+
+<script src="{{ url_for('static', filename='kit.js') }}"></script>
+<script src="{{ url_for('static', filename='p_reasoning.js') }}"></script>
+<script src="{{ url_for('static', filename='p_search.js') }}"></script>
+<script src="{{ url_for('static', filename='p_strategy.js') }}"></script>
+<script src="{{ url_for('static', filename='p_graphs.js') }}"></script>
+<script src="{{ url_for('static', filename='p_planning.js') }}"></script>
+<script src="{{ url_for('static', filename='p_spatial.js') }}"></script>
+<script>Kit.start({{ meta | tojson }});</script>
+</body>
+</html>

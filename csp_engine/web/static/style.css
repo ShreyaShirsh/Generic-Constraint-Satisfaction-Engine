@@ -1,32 +1,45 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+
 :root {
-  --bg: #0f1115;
-  --panel: #161922;
-  --panel-2: #1d212c;
-  --border: #2a2f3d;
-  --text: #e8eaf0;
-  --muted: #9aa1b2;
-  --accent: #6ea8fe;
-  --accent-2: #7ee2b8;
-  --warn: #f5a35c;
-  --danger: #f27272;
-  --radius: 10px;
-  --mono: "Cascadia Code", "SF Mono", Consolas, Menlo, monospace;
+  --bg: #f7f4ee;
+  --panel: #ffffff;
+  --panel-2: #f6f3ed;
+  --border: #e6e1d8;
+  --text: #2a2d3a;
+  --muted: #6f7486;
+  --accent: #5b6cff;
+  --accent-2: #12a58a;
+  --warn: #e8830c;
+  --danger: #e5484d;
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(60, 45, 20, .04), 0 8px 24px rgba(60, 45, 20, .06);
+  --display: "Fredoka", "Nunito", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.55;
+  background:
+    radial-gradient(900px 520px at -10% -10%, rgba(255, 214, 224, .55), transparent 60%),
+    radial-gradient(820px 520px at 110% 0%, rgba(214, 226, 255, .6), transparent 60%),
+    radial-gradient(900px 700px at 50% 115%, rgba(212, 244, 230, .55), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
 }
+
+h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: .2px; }
+button, select, input { font-family: inherit; }
+select, input[type=text], input[type=number] { border-radius: 10px !important; }
 
 header.top {
   padding: 22px 28px 14px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #151822, #0f1115);
+  background: transparent;
 }
 
 header.top h1 {
@@ -48,7 +61,8 @@ nav.tabs {
   flex-wrap: wrap;
   gap: 6px;
   padding: 10px 24px;
-  background: var(--panel);
+  background: rgba(255, 255, 255, .82);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -70,7 +84,7 @@ nav.tabs button:hover { color: var(--text); border-color: var(--border); }
 
 nav.tabs button.active {
   background: var(--accent);
-  color: #0b1020;
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -115,7 +129,7 @@ textarea { min-height: 120px; resize: vertical; }
 
 button.solve {
   background: var(--accent);
-  color: #0b1020;
+  color: #ffffff;
   border: none;
   font-weight: 600;
   padding: 10px 18px;
@@ -155,9 +169,9 @@ button.ghost {
 .metric .value { font-size: 1.1rem; font-weight: 600; font-family: var(--mono); }
 
 .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.74rem; font-weight: 600; }
-.badge.ok { background: rgba(126,226,184,.15); color: var(--accent-2); }
-.badge.bad { background: rgba(242,114,114,.15); color: var(--danger); }
-.badge.warn { background: rgba(245,163,92,.15); color: var(--warn); }
+.badge.ok { background: rgba(18,165,138,.15); color: var(--accent-2); }
+.badge.bad { background: rgba(229,72,77,.15); color: var(--danger); }
+.badge.warn { background: rgba(240,140,43,.15); color: var(--warn); }
 
 .viz { margin-top: 16px; }
 
@@ -173,8 +187,8 @@ button.ghost {
   background: var(--panel-2);
   font-size: 1.3rem;
 }
-.board .cell.light { background: #242836; }
-.board .cell.dark  { background: #1a1d26; }
+.board .cell.light { background: #f0e6d6; }
+.board .cell.dark  { background: #c9ab84; }
 .board .cell.queen { color: var(--accent); font-weight: bold; }
 
 .sudoku-grid {
@@ -226,7 +240,7 @@ table.pretty td.num { font-family: var(--mono); text-align: right; }
   font-size: 0.8rem;
   cursor: pointer;
 }
-.pill-group button.active { background: var(--accent); color: #0b1020; border-color: var(--accent); font-weight: 600; }
+.pill-group button.active { background: var(--accent); color: #ffffff; border-color: var(--accent); font-weight: 600; }
 
 code.inline {
   background: var(--panel-2);
@@ -238,7 +252,7 @@ code.inline {
 }
 
 .schema-box {
-  background: #0c0e13;
+  background: #fbfaf7;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px 16px;
@@ -272,7 +286,7 @@ code.inline {
 
 .callout {
   border-left: 3px solid var(--accent);
-  background: rgba(110,168,254,.08);
+  background: rgba(91,108,255,.08);
   padding: 12px 16px;
   border-radius: 0 8px 8px 0;
   margin: 14px 0;
@@ -286,7 +300,7 @@ svg.graph-svg text { fill: var(--text); font-size: 11px; font-family: var(--mono
 .loading { color: var(--muted); font-style: italic; }
 
 .error-box {
-  background: rgba(242,114,114,.1);
+  background: rgba(229,72,77,.1);
   border: 1px solid var(--danger);
   color: var(--danger);
   padding: 10px 14px;
@@ -294,3 +308,16 @@ svg.graph-svg text { fill: var(--text); font-size: 11px; font-family: var(--mono
   margin-top: 12px;
   font-size: 0.85rem;
 }
+
+nav.tabs a.studio-link {
+  margin-left: auto;
+  background: var(--accent-2);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+nav.tabs a.studio-link:hover { filter: brightness(1.08); }
+.studio-callout a { color: var(--accent-2); font-weight: 600; }

@@ -38,26 +38,28 @@ def sudoku_csp(grid: list[list[int]], box_rows: int, box_cols: int) -> CSP:
             given = grid[r][c]
             domains[(r, c)] = {given} if given else set(range(1, size + 1))
 
-    groups: list[list[Cell]] = []
+    groups: list[tuple[str, list[Cell]]] = []
     for r in range(size):                                   # rows
-        groups.append([(r, c) for c in range(size)])
+        groups.append((f"row {r + 1}", [(r, c) for c in range(size)]))
     for c in range(size):                                   # columns
-        groups.append([(r, c) for r in range(size)])
+        groups.append((f"column {c + 1}", [(r, c) for r in range(size)]))
+    k = 0
     for br in range(0, size, box_rows):                      # boxes
         for bc in range(0, size, box_cols):
-            groups.append([(r, c) for r in range(br, br + box_rows)
-                           for c in range(bc, bc + box_cols)])
+            k += 1
+            groups.append((f"box {k}", [(r, c) for r in range(br, br + box_rows)
+                                        for c in range(bc, bc + box_cols)]))
 
     seen_pairs: set[frozenset] = set()
     constraints = []
-    for group in groups:
-        for rel in all_different(group):
+    for label, group in groups:
+        for rel in all_different(group, label=label):
             key = frozenset((rel.x, rel.y))
             if key not in seen_pairs:                        # a row/box overlap
                 seen_pairs.add(key)                           # can repeat a pair
                 constraints.append(rel)
 
-    return CSP(variables, domains, constraints)
+    return CSP(variables, domains, constraints, groups=groups)
 
 
 def grid_str(solution: dict, size: int) -> str:

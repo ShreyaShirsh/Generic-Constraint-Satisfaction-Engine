@@ -13,9 +13,16 @@ Run:  python -m csp_engine.benchmark
 from __future__ import annotations
 import json
 from .core.backtracking import backtracking_search, first_unassigned, domain_order, no_inference
-from .core.inference import forward_checking, mac
+from .core.inference import forward_checking, mac, mac_plus
 from .core.heuristics import mrv, mrv_degree, lcv
 from .problems import nqueens, graph_colouring, sudoku, cryptarithmetic, exam_scheduling
+from .problems import puzzle_presets
+from .problems.grid_puzzle import grid_puzzle_csp
+
+
+def _preset(pid: str):
+    spec = next(p["spec"] for p in puzzle_presets.load() if p["id"] == pid)
+    return lambda: grid_puzzle_csp(spec)
 
 TECHNIQUES = [
     ("Naive backtracking",            first_unassigned, domain_order, no_inference),
@@ -23,6 +30,7 @@ TECHNIQUES = [
     ("+ Arc consistency (MAC)",       first_unassigned, domain_order, mac),
     ("+ MAC + MRV",                   mrv,               domain_order, mac),
     ("+ MAC + MRV + degree + LCV",    mrv_degree,        lcv,          mac),
+    ("+ MAC + MRV + pigeonhole",      mrv,               domain_order, mac_plus),
 ]
 
 # (label, csp-builder, max_nodes safety cap -- naive search can run away)
@@ -30,6 +38,8 @@ PROBLEMS = [
     ("N-Queens (n=8)",        lambda: nqueens.nqueens_csp(8),                         200_000),
     ("Map colouring (Australia)", lambda: graph_colouring.australia_csp(),            200_000),
     ("Sudoku (easy 9x9)",     lambda: sudoku.sudoku_csp(sudoku.EASY_9x9, 3, 3),        200_000),
+    ("Sudoku (expert 9x9)",   _preset("sudoku-expert"),                                200_000),
+    ("Killer Sudoku (9x9)",   _preset("killer-9"),                                     200_000),
     ("Exam scheduling (4 slots)", lambda: exam_scheduling.exam_scheduling_csp(
         exam_scheduling.SAMPLE_ENROLLMENTS, 4),                                        200_000),
     ("Cryptarithmetic (SEND+MORE=MONEY)",

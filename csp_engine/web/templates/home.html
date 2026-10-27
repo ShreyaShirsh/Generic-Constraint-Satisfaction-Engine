@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Constraint, Thirty Problems</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%235b6cff%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-size=%2220%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22%3E%E2%89%A0%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='kit.css') }}">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">BITE308L · A Generic Constraint Satisfaction Engine</p>
+    <h1>One engine. <span class="accent">One constraint.</span> Thirty problems.</h1>
+    <p class="lede">
+      Logic riddles, sliding puzzles, chess, Sudoku, routing, scheduling, robots and jigsaws all go through
+      the same solver. Every problem below compiles to the same object, and the engine is built on exactly
+      one kind of constraint:
+    </p>
+    <div class="the-constraint">
+      <code>constraint.is_satisfied(assignment) → True / False</code>
+      <span>a yes/no predicate over a set of variables — and the one used most is <strong>≠</strong></span>
+    </div>
+    <div class="hero-links">
+      <a class="btn-primary" href="#gallery">Explore the problems</a>
+      <a class="btn-ghost" href="/studio">Puzzle Studio</a>
+      <a class="btn-ghost" href="/engine">How the engine works</a>
+    </div>
+  </div>
+</header>
+
+<main class="home-main">
+  <section class="bridges">
+    <div class="bridge">
+      <h3>Puzzles</h3>
+      <p>Variables, domains and constraints, as in the textbook. Most constraints are <strong>≠</strong>.</p>
+    </div>
+    <div class="bridge">
+      <h3>Search &amp; planning</h3>
+      <p>Variables are "the move at step t"; <strong>one predicate</strong> says the plan is legal and reaches the goal.</p>
+    </div>
+    <div class="bridge">
+      <h3>Optimisation</h3>
+      <p>A normal CSP plus <strong>one predicate</strong>: "better than the best solution found so far".</p>
+    </div>
+    <div class="bridge">
+      <h3>Games</h3>
+      <p>A <strong>quantified</strong> CSP: ∃ my move ∀ your reply ∃ … one WIN predicate.</p>
+    </div>
+  </section>
+
+  <div id="gallery">
+  {% for cid, cname, cblurb in categories %}
+  <section class="cat cat-{{ cid }}" id="cat-{{ cid }}">
+    <div class="cat-head">
+      <span class="cat-icon">{% include "icons/" ~ cid ~ ".svg" %}</span>
+      <div>
+        <h2>{{ cname }}</h2>
+        <p>{{ cblurb }}</p>
+      </div>
+    </div>
+    <div class="cards">
+      {% for p in problems if p.category == cid %}
+      <a class="pcard" href="{{ p.href if p.href else '/p/' ~ p.id }}">
+        <h3>{{ p.name }}</h3>
+        <p>{{ p.summary }}</p>
+        <span class="chip">{{ p.one_constraint }}</span>
+        <span class="play">{{ 'Learn vs reason →' if p.id == 'qlearning' else 'Play →' }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+  </div>
+</main>
+
+<footer class="note">BITE308L — A Generic Constraint Satisfaction Engine · every problem on this site is solved by the same core/ package</footer>
+</body>
+</html>

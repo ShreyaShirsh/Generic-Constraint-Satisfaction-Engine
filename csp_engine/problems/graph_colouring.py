@@ -14,10 +14,16 @@ from ..core.model import CSP
 from ..core.constraints import NotEqual
 
 
-def graph_colouring_csp(adjacency: dict[str, list[str]], colours: list[str]) -> CSP:
-    """Build a colouring CSP from any adjacency map and any colour palette."""
+def graph_colouring_csp(adjacency: dict[str, list[str]], colours: list,
+                        edge_label: str = "{a} and {b} share a border") -> CSP:
+    """Build a colouring CSP from any adjacency map and any colour palette.
+    `edge_label` words each constraint for explanations ("{a}"/"{b}" = ends)."""
     variables = list(adjacency.keys())
-    domains = {v: set(colours) for v in variables}
+    for nbrs in adjacency.values():
+        for u in nbrs:
+            if u not in variables:
+                variables.append(u)
+    domains = {v: list(colours) for v in variables}
 
     constraints = []
     seen: set[frozenset] = set()
@@ -26,7 +32,7 @@ def graph_colouring_csp(adjacency: dict[str, list[str]], colours: list[str]) -> 
             edge = frozenset((v, u))
             if edge not in seen:            # one constraint per edge, not two
                 seen.add(edge)
-                constraints.append(NotEqual(v, u))
+                constraints.append(NotEqual(v, u, label=edge_label.format(a=v, b=u)))
 
     return CSP(variables, domains, constraints)
 

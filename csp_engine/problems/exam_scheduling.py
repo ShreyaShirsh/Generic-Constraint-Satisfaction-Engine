@@ -38,7 +38,7 @@ def exam_scheduling_csp(enrollments: dict[str, list[str]], num_slots: int) -> CS
     exams = nodes, shared-student pairs = edges, time slots = colours."""
     adjacency = conflict_graph(enrollments)
     slots = list(range(1, num_slots + 1))
-    return graph_colouring_csp(adjacency, slots)
+    return graph_colouring_csp(adjacency, slots, edge_label="{a} and {b} share a student")
 
 
 def timetable_str(solution: dict) -> str:

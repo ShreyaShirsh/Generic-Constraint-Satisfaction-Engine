@@ -79,16 +79,16 @@ function renderGraph(container, adjacency, labelOf, colourOf) {
       if (seen.has(key)) continue;
       seen.add(key);
       const [x1, y1] = pos[u], [x2, y2] = pos[v];
-      edgesSvg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3a4054" stroke-width="1.5"/>`;
+      edgesSvg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c5c9d6" stroke-width="1.5"/>`;
     }
   }
 
   let nodesSvg = "";
   for (const node of nodes) {
     const [x, y] = pos[node];
-    const fill = colourOf(node) || "#2a2f3d";
+    const fill = colourOf(node) || "#d9d6cf";
     nodesSvg += `
-      <circle cx="${x}" cy="${y}" r="22" fill="${fill}" stroke="#e8eaf0" stroke-width="1.5"/>
+      <circle cx="${x}" cy="${y}" r="22" fill="${fill}" stroke="#2a2d3a" stroke-width="1.5"/>
       <text x="${x}" y="${y + 4}" text-anchor="middle">${escapeHtml(labelOf(node))}</text>`;
   }
 
@@ -287,7 +287,7 @@ exBtn.addEventListener("click", withBusy(exBtn, async () => {
     renderMetrics("ex-metrics", data.metrics);
     const viz = document.getElementById("ex-viz");
     if (!data.assignment) { viz.innerHTML = "<p>No feasible timetable with this many slots.</p>"; return; }
-    const palette = ["#6ea8fe", "#7ee2b8", "#f5a35c", "#f27272", "#c792ea", "#ffd479", "#89ddff"];
+    const palette = ["#5b6cff", "#12a58a", "#f08c2b", "#e5484d", "#c792ea", "#ffd479", "#89ddff"];
     const slotColour = {};
     viz.innerHTML = "";
     const graphDiv = document.createElement("div");
@@ -351,14 +351,14 @@ function renderBenchmark(problem) {
     data: {
       labels: rows.map((r) => r.technique),
       datasets: [
-        { label: "nodes", data: rows.map((r) => r.nodes), backgroundColor: "#6ea8fe" },
-        { label: "backtracks", data: rows.map((r) => r.backtracks), backgroundColor: "#f27272" },
+        { label: "nodes", data: rows.map((r) => r.nodes), backgroundColor: "#5b6cff" },
+        { label: "backtracks", data: rows.map((r) => r.backtracks), backgroundColor: "#e5484d" },
       ],
     },
     options: {
       responsive: true,
       scales: { y: { type: "logarithmic", title: { display: true, text: "count (log scale)" } } },
-      plugins: { legend: { labels: { color: "#e8eaf0" } } },
+      plugins: { legend: { labels: { color: "#2a2d3a" } } },
     },
   });
 

@@ -16,14 +16,19 @@ from flask_cors import CORS
 
 from ..core.backtracking import (backtracking_search, first_unassigned, domain_order,
                                  no_inference)
-from ..core.inference import forward_checking, mac
+from ..core.inference import forward_checking, mac, mac_plus
 from ..core.heuristics import mrv, mrv_degree, lcv
 from ..core.local_search import min_conflicts
 from ..problems import nqueens, graph_colouring, sudoku, cryptarithmetic, zebra, exam_scheduling
 from .custom_csp import build_custom_csp, CustomCSPError
+from .studio import bp as studio_bp
+from .problems_api import bp as problems_bp
+from .catalog import P as CATALOG, CATEGORIES, BY_ID
 
 app = Flask(__name__)
 CORS(app)
+app.register_blueprint(studio_bp)
+app.register_blueprint(problems_bp)
 
 MAX_NODES = 150_000   # a live HTTP request should never hang the server
 
@@ -33,6 +38,7 @@ ALGORITHMS = {
     "mac":     ("+ Arc consistency (MAC)",        first_unassigned, domain_order, mac),
     "mac_mrv": ("+ MAC + MRV",                    mrv,               domain_order, mac),
     "full":    ("+ MAC + MRV + Degree + LCV",     mrv_degree,        lcv,          mac),
+    "smart":   ("+ MAC + MRV + pigeonhole groups", mrv,              domain_order, mac_plus),
 }
 DEFAULT_ALGO = "full"
 
@@ -61,8 +67,27 @@ def error(message: str, status: int = 400):
 # ---- pages ---------------------------------------------------------------
 
 @app.route("/")
+def home():
+    return render_template("home.html", categories=CATEGORIES, problems=CATALOG)
+
+
+@app.route("/engine")
 def index():
     return render_template("index.html", algorithms=ALGORITHMS)
+
+
+@app.route("/p/<pid>")
+def problem_page(pid):
+    meta = BY_ID.get(pid)
+    if meta is None:
+        return render_template("home.html", categories=CATEGORIES, problems=CATALOG), 404
+    cat = next(c for c in CATEGORIES if c[0] == meta["category"])
+    return render_template("problem.html", meta=meta, category=cat)
+
+
+@app.route("/studio")
+def studio():
+    return render_template("studio.html")
 
 
 # ---- N-Queens -------------------------------------------------------------
@@ -237,4 +262,4 @@ def api_benchmark():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

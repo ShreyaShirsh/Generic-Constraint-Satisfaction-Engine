@@ -11,7 +11,7 @@ Run:  python -m csp_engine.cli
 from __future__ import annotations
 from .core.backtracking import (backtracking_search, find_all_solutions,
                                 first_unassigned, domain_order, no_inference)
-from .core.inference import forward_checking, mac
+from .core.inference import forward_checking, mac, mac_plus
 from .core.heuristics import mrv, mrv_degree, lcv
 from .core.local_search import min_conflicts
 from .problems import nqueens, graph_colouring, sudoku, cryptarithmetic, zebra, exam_scheduling
@@ -22,6 +22,7 @@ ALGORITHMS = {
     "3": ("+ Arc consistency (MAC)",      first_unassigned, domain_order, mac),
     "4": ("+ MAC + MRV",                  mrv,               domain_order, mac),
     "5": ("+ MAC + MRV + degree + LCV",   mrv_degree,        lcv,          mac),
+    "6": ("+ MAC + MRV + pigeonhole",     mrv,               domain_order, mac_plus),
 }
 
 
@@ -43,7 +44,7 @@ def _pick_algorithm():
     print("Algorithm:")
     for key, (label, *_rest) in ALGORITHMS.items():
         print(f"  {key}) {label}")
-    choice = input("Choose [1-5, default 5]: ").strip() or "5"
+    choice = input("Choose [1-6, default 5]: ").strip() or "5"
     return ALGORITHMS.get(choice, ALGORITHMS["5"])
 
 

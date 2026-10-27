@@ -46,10 +46,11 @@ class BinaryRelation(Constraint):
     `holds`.
     """
     def __init__(self, x: Var, y: Var, rel: Callable[[Value, Value], bool],
-                 name: str | None = None):
+                 name: str | None = None, label: str | None = None):
         super().__init__((x, y))
         self.x, self.y, self.rel = x, y, rel
         self.name = name or "BinaryRelation"
+        self.label = label
 
     def is_satisfied(self, assignment: dict) -> bool:
         if self.x in assignment and self.y in assignment:
@@ -83,14 +84,18 @@ class Predicate(Constraint):
     def __init__(self, variables: Iterable[Var],
                  fn: Callable[[dict], bool],
                  name: str | None = None,
-                 check_when_partial: bool = False):
+                 check_when_partial: bool = False,
+                 label: str | None = None):
         super().__init__(variables)
         self.fn = fn
         self.name = name or "Predicate"
         self.check_when_partial = check_when_partial
+        self.label = label
 
     def is_satisfied(self, assignment: dict) -> bool:
         local = {v: assignment[v] for v in self.variables if v in assignment}
+        if not local:
+            return True
         if len(local) < len(self.variables) and not self.check_when_partial:
             return True
         return self.fn(local)
@@ -99,13 +104,17 @@ class Predicate(Constraint):
         return f"{self.name}{self.variables}"
 
 
-def NotEqual(x: Var, y: Var) -> BinaryRelation:
+def _ne(a, b):
+    return a != b
+
+
+def NotEqual(x: Var, y: Var, label: str | None = None) -> BinaryRelation:
     """Convenience: x and y must differ. The workhorse of graph colouring,
     N-Queens, and (via AllDifferent) every row/column/box in Sudoku."""
-    return BinaryRelation(x, y, lambda a, b: a != b, name="NotEqual")
+    return BinaryRelation(x, y, _ne, name="NotEqual", label=label)
 
 
-def all_different(variables: Iterable[Var]) -> list[BinaryRelation]:
+def all_different(variables: Iterable[Var], label: str | None = None) -> list[BinaryRelation]:
     """The classic 'all-different' global constraint, expressed the way this
     engine expresses everything: as pairwise NotEqual binary constraints.
 
@@ -115,4 +124,4 @@ def all_different(variables: Iterable[Var]) -> list[BinaryRelation]:
     the engine uses. One idea, applied uniformly.
     """
     variables = list(variables)
-    return [NotEqual(a, b) for a, b in combinations(variables, 2)]
+    return [NotEqual(a, b, label=label) for a, b in combinations(variables, 2)]

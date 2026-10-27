@@ -24,6 +24,8 @@
   <button data-tab="exam">Exam Scheduling</button>
   <button data-tab="custom">Custom CSP</button>
   <button data-tab="benchmark">Benchmark</button>
+  <a class="studio-link" href="/">All 30 problems</a>
+  <a class="studio-link" href="/studio" style="margin-left:6px">Puzzle Studio &rarr;</a>
 </nav>
 
 <main>
@@ -78,12 +80,20 @@ a Constraint is nothing but:   is_satisfied(assignment) -> bool
         nothing to solve.
       </p>
 
+      <div class="callout studio-callout">
+        <strong>New: Puzzle Studio.</strong> Watch two search strategies race on the same puzzle, play with an
+        AI coach that explains every hint, generate endless graded puzzles, or invent a brand-new puzzle type
+        and have the same engine solve, generate and explain it. <a href="/studio">Open the Studio &rarr;</a>
+      </div>
+
       <h3>Techniques implemented</h3>
       <table class="pretty">
         <tr><th>Search</th><td>Systematic backtracking (first solution and all-solutions variants)</td></tr>
-        <tr><th>Propagation</th><td>Forward checking, generic AC-3 / MAC (maintaining arc consistency)</td></tr>
+        <tr><th>Propagation</th><td>Forward checking, generalised AC-3 / MAC over binary and n-ary constraints, pigeonhole reasoning over all-different groups</td></tr>
         <tr><th>Ordering heuristics</th><td>Minimum Remaining Values (MRV), degree heuristic, Least Constraining Value (LCV)</td></tr>
         <tr><th>Local search</th><td>Min-conflicts — repairs a complete, inconsistent assignment instead of building one incrementally</td></tr>
+        <tr><th>Explanation</th><td>Human-style reasoner: justified step-by-step deductions, hints in plain English, difficulty grading</td></tr>
+        <tr><th>Generation</th><td>Generic puzzle generator — random solution, uniqueness-preserving clue removal, difficulty targeting</td></tr>
         <tr><th>Reduction</th><td>Exam scheduling is solved by reducing it to graph colouring — zero new solver code</td></tr>
       </table>
     </div>
